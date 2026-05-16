@@ -1,74 +1,84 @@
-// Importamos las librerías necesarias
 const express = require("express");
 const cors = require("cors");
 
-// Creamos la aplicación
 const app = express();
 
-// Permitir recibir datos en JSON
+app.use(cors());
 app.use(express.json());
 
-// Permitir comunicación con el frontend
-app.use(cors());
-
-// Simulación de base de datos en memoria
 let usuarios = [];
 
-/*
-RUTA PRINCIPAL
-Sirve para comprobar que el servidor funciona
-*/
+// Ruta principal
 app.get("/", (req, res) => {
     res.send("Servidor funcionando correctamente");
 });
 
-/*
-SERVICIO WEB: REGISTRO
-Recibe usuario y contraseña y los guarda
-*/
+// Registro
 app.post("/register", (req, res) => {
 
-    const { usuario, password } = req.body;
+    // Validar body vacío
+    if (!req.body) {
+        return res.status(400).json({
+            mensaje: "No se recibieron datos"
+        });
+    }
 
-    usuarios.push({ usuario, password });
+    const usuario = req.body.usuario;
+    const password = req.body.password;
 
-    res.json({
+    // Validar campos
+    if (!usuario || !password) {
+        return res.status(400).json({
+            mensaje: "Debe ingresar usuario y contraseña"
+        });
+    }
+
+    usuarios.push({
+        usuario,
+        password
+    });
+
+    return res.status(200).json({
         mensaje: "Usuario registrado correctamente"
     });
 
 });
 
-/*
-SERVICIO WEB: LOGIN
-Valida usuario y contraseña
-*/
+// Login
 app.post("/login", (req, res) => {
 
-    const { usuario, password } = req.body;
+    if (!req.body) {
+        return res.status(400).json({
+            mensaje: "No se recibieron datos"
+        });
+    }
+
+    const usuario = req.body.usuario;
+    const password = req.body.password;
+
+    if (!usuario || !password) {
+        return res.status(400).json({
+            mensaje: "Debe ingresar usuario y contraseña"
+        });
+    }
 
     const encontrado = usuarios.find(
-        u => u.usuario === usuario && u.password === password
+        user => user.usuario === usuario && user.password === password
     );
 
     if (encontrado) {
-
-        res.json({
+        return res.status(200).json({
             mensaje: "Autenticación satisfactoria"
         });
-
-    } else {
-
-        res.status(401).json({
-            mensaje: "Error en la autenticación"
-        });
-
     }
+
+    return res.status(401).json({
+        mensaje: "Error en la autenticación"
+    });
 
 });
 
-/*
-INICIAR SERVIDOR
-*/
+// Iniciar servidor
 app.listen(3000, () => {
     console.log("Servidor ejecutándose en http://localhost:3000");
 });
